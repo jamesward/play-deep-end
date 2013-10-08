@@ -37,7 +37,7 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>Playing in the Deep End</h1>
+					<h2>Playing in the Deep End</h2>
 					<p>
 						<small><a href="http://www.jamesward.com">James Ward</a> ~ <a href="http://twitter.com/_jamesward">@_JamesWard</a></small>
 					</p>
@@ -61,8 +61,8 @@
                     <section data-markdown>
                         <script type="text/template">
                             ## Get Started
-                            ### Typesafe Activator - Reactive Development Tool for Play
-                            ### typesafe.com/getstarted
+                            #### Typesafe Activator - Reactive Development Tool for Play
+                            typesafe.com/platform/getstarted
 
                             * 35+ Templates with Tutorials
                             * Web UI and CLI
@@ -88,7 +88,7 @@
                     <section data-markdown>
                         <script type="text/template">
                             ## Async + Non-Blocking
-                            ### Better Scalability Through Event-Driven Thread Usage
+                            ### Better Scalability with Event-Driven Thread Usage
 
                             * Reactive Requests
                             * Reactive Composition
@@ -96,12 +96,9 @@
                             * 2-Way Reactive
                         </script>
                     </section>
-                    <section data-markdown>
-                        <script type="text/template">
-                            ## Reactive Requests
-                            
-                            # TODO: Image
-                        </script>
+                    <section>
+                        <h2>Reactive Requests</h2>
+                        <img src="assets/reactive-requests.png">
                     </section>
                     <section data-markdown>
                         <script type="text/template">
@@ -358,7 +355,7 @@
                     <section data-markdown>
                         <script type="text/template">
                             ### Interpolation & Pattern Matching
-                            ### JsZipper: http://mandubian.com/2013/07/04/json-interpolation-pattern-matching/
+                            #### JsZipper: https://github.com/mandubian/play-json-zipper
 
                                 val js = json"""{ "foo" : "bar", "foo2" : 123 }"""
 
@@ -371,17 +368,93 @@
                     </section>
                 </section>
 
-                <!-- 
                 <section>
                     <section data-markdown>
                         <script type="text/template">
                             ## Dependency Injection
 
-                            # TODO
+                            * Static Methods are the Default
+                            * Can easily be changed to use any DI
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Non-Static Method Routing
+
+                                GET     /                           @controllers.Application.index
+                            
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Tell Play How to Get an Instance
+
+                                public class Global extends GlobalSettings {
+    
+                                    private ApplicationContext ctx;
+    
+                                    @Override
+                                    public void onStart(Application app) {
+                                        ctx = new AnnotationConfigApplicationContext(AppConfig.class, DataConfig.class);
+                                    }
+    
+                                    @Override
+                                    public <A> A getControllerInstance(Class<A> clazz) {
+                                        return ctx.getBean(clazz);
+                                    }
+
+                                }
+
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Static-Free
+
+                                @org.springframework.stereotype.Controller
+                                public class Application {
+                                    
+                                    @Autowired
+                                    private BarService barService;
+
+                                    public Result index() {
+                                        return play.mvc.Controller.ok(index.render(Form.form(Bar.class)));
+                                    }
+                                }
+
                         </script>
                     </section>
                 </section>
-                -->
+                
+                <section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ## WebJars
+                            ### The Web in Jars
+
+                            * Common client-side libraries: jQuery, Bootstrap, etc
+                            * Manage versioning through dependency management
+                            * Transitive dependencies
+                            * RequireJS support
+                            * CDN & Cache Friendly
+                        </script>
+                    </section>
+                    <section>
+                        Specify Dependencies in <code>build.sbt</code>
+
+                        <pre><code>"org.webjars" %% "webjars-play" % "2.2.0",
+"org.webjars" % "bootstrap" % "2.3.1"</code></pre>
+                                    
+                        Create Route for <code>WebJarAssets</code> Controller
+                        
+                        <pre><code>GET     /webjars/*file              controllers.WebJarAssets.at(file)</code></pre>
+
+                        Use a WebJar
+
+                        <pre><code>&lt;script src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'&gt;&lt;/script&gt;</code></pre>
+                                
+                    </section>
+                </section>
 
                 <!--
                 <section>
