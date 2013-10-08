@@ -159,16 +159,40 @@
                     </section>
                     <section data-markdown>
                         <script type="text/template">
-                            ### Reactive Push
+                            ### Reactive Push with SSE
 
-                            # TODO: WebSockets
+                                def events = Action {
+                                    val (enumerator, channel) = Concurrent.broadcast[String]
+    
+                                    Akka.system.scheduler.schedule(Duration.Zero, 1.second, new Runnable {
+                                        def run() = channel.push("hello")
+                                    })
+    
+                                    Ok.feed(enumerator &> EventSource()).as(EVENT_STREAM)
+                                }
+                            
+                                $ ->
+                                  events = new EventSource("/events")
+                                  events.onmessage = (e) ->
+                                    console.log(e.data)
                         </script>
                     </section>
                     <section data-markdown>
                         <script type="text/template">
-                            ### 2-Way Reactive
+                            ### 2-Way Reactive with WebSockets
 
-                            # TODO
+                                def echoWs = WebSocket.using[String] { request =>
+                                    val (enumerator, channel) = Concurrent.broadcast[String]
+                                    val in = Iteratee.foreach[String](channel.push)
+                                    (in, enumerator)
+                                }
+
+                                $ ->
+                                    ws = new WebSocket("ws://localhost:9000/echo")
+                                    ws.onopen = () ->
+                                        ws.send("foo")
+                                    ws.onmessage = (message) ->
+                                        console.log(message.data)
                         </script>
                     </section>
                 </section>
@@ -276,18 +300,78 @@
                                 }
                         </script>
                     </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Or Using a Filter Impl
+                                    
+                                object Global extends WithFilters(new MyFilter())
+                        </script>
+                    </section>
                 </section>
 
                 <section>
                     <section data-markdown>
                         <script type="text/template">
                             ## Advanced JSON
+                            ### Very Rich Scala JSON API
 
-                            # TODO
+                            * Reflection-free via Macros
+                            * Built-in Validators
+                            * JSON Coast-to-Coast
+                            * Interpolation & Pattern Matching
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reflection-free via Macros
+                                    
+                                case class Foo(name: String)
+    
+                                object Foo {
+                                  implicit val fooFormat = Json.format[Foo]
+                                }
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Built-in Validators
+
+                                object Foo {
+                                    implicit val fooWrites = Json.writes[Foo]
+                                    implicit val fooReads: Reads[Foo] = (__ \ "name").read[String](minLength[String](5)).map(Foo(_))
+                                }
+                                    
+                                Json.parse("""{"name": "asdf"}""").validate[Foo]
+                                // JsError(List((/name,List(ValidationError(error.minLength,WrappedArray(5))))))
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### JSON Coast-to-Coast
+
+                                val foo = Json.toJson(Foo("asdf"))
+                                val transformer = (__ \ "name").json.put(JsString("foo"))
+                                val newFoo = foo.transform(transformer)
+                                newFoo.map(Ok(_)).getOrElse(BadRequest)
+                        </script>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Interpolation & Pattern Matching
+                            ### JsZipper: http://mandubian.com/2013/07/04/json-interpolation-pattern-matching/
+
+                                val js = json"""{ "foo" : "bar", "foo2" : 123 }"""
+
+                                js match {
+                                    case json"""{ "foo" : $a, "foo2" : $b }""" => Some(a -> b)
+                                    case _ => None
+                                }
+                            
                         </script>
                     </section>
                 </section>
 
+                <!-- 
                 <section>
                     <section data-markdown>
                         <script type="text/template">
@@ -297,6 +381,7 @@
                         </script>
                     </section>
                 </section>
+                -->
 
                 <!--
                 <section>
